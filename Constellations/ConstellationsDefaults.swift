@@ -7,70 +7,153 @@ import ScreenSaver
 
 class ConstellationsDefaults {
     
+    /// The keys used to persist every setting in the module's defaults domain.
+    enum Key: String {
+        case numberOfNodes = "NumberOfNodes"
+        case minSpeed = "MinSpeed"
+        case maxSpeed = "MaxSpeed"
+        case minRadius = "MinRadius"
+        case maxRadius = "MaxRadius"
+        case lineDistance = "LineDistance"
+        case backgroundColor = "BackgroundColor"
+        case nodeColor = "NodeColor"
+        case lineColor = "LineColor"
+        case renderingEngine = "RenderingEngine"
+    }
+    
+    /// The drawing back end used by the saver view.
+    enum RenderingEngine: String, CaseIterable {
+        case coreGraphics = "CoreGraphics"
+        case metal = "Metal"
+        
+        var displayName: String {
+            switch self {
+            case .coreGraphics: return "Core Graphics"
+            case .metal: return "Metal"
+            }
+        }
+    }
+    
+    /// The factory settings, used both as the registration domain and by `reset()`.
+    enum Factory {
+        static let numberOfNodes: Int = 150
+        static let minSpeed: CGFloat = 1.0
+        static let maxSpeed: CGFloat = 5.0
+        static let minRadius: CGFloat = 2.0
+        static let maxRadius: CGFloat = 5.0
+        static let lineDistance: CGFloat = 200.0
+        static let backgroundColor: NSColor = .black
+        static let nodeColor: NSColor = .white
+        static let lineColor: NSColor = .white
+        static let renderingEngine: RenderingEngine = .metal
+    }
+    
     private var defaults = ScreenSaverDefaults(forModuleWithName: "nl.relmendorp.Constellations")
     
-    var numberOfNodes: Int = 150 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(numberOfNodes, forKey: "NumberOfNodes")
-            }
-        }
+    /// Suppresses write-back while `load()` populates the properties.
+    private var isLoading = false
+    
+    var numberOfNodes: Int = Factory.numberOfNodes {
+        didSet { write(numberOfNodes, for: .numberOfNodes) }
     }
-    var minSpeed = 1.0 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(minSpeed, forKey: "MinSpeed")
-            }
-        }
+    var minSpeed = Factory.minSpeed {
+        didSet { write(Double(minSpeed), for: .minSpeed) }
     }
-    var maxSpeed = 5.0 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(maxSpeed, forKey: "MaxSpeed")
-            }
-        }
+    var maxSpeed = Factory.maxSpeed {
+        didSet { write(Double(maxSpeed), for: .maxSpeed) }
     }
-    var minRadius = 2.0 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(minRadius, forKey: "MinRadius")
-            }
-        }
+    var minRadius = Factory.minRadius {
+        didSet { write(Double(minRadius), for: .minRadius) }
     }
-    var maxRadius = 5.0 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(maxRadius, forKey: "MaxRadius")
-            }
-        }
+    var maxRadius = Factory.maxRadius {
+        didSet { write(Double(maxRadius), for: .maxRadius) }
     }
-    var lineDistance = 200.0 {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(lineDistance, forKey: "LineDistance")
-            }
-        }
+    var lineDistance = Factory.lineDistance {
+        didSet { write(Double(lineDistance), for: .lineDistance) }
     }
     
-    var backgroundColor: NSColor = .black {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(backgroundColor, forKey: "BackgroundColor")
-            }
-        }
+    var backgroundColor: NSColor = Factory.backgroundColor {
+        didSet { writeColor(backgroundColor, for: .backgroundColor) }
     }
-    var nodeColor: NSColor = .white {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(nodeColor, forKey: "NodeColor")
-            }
-        }
+    var nodeColor: NSColor = Factory.nodeColor {
+        didSet { writeColor(nodeColor, for: .nodeColor) }
     }
-    var lineColor: NSColor = .white {
-        didSet {
-            if let defaults = self.defaults {
-                defaults.set(lineColor, forKey: "LineColor")
-            }
-        }
+    var lineColor: NSColor = Factory.lineColor {
+        didSet { writeColor(lineColor, for: .lineColor) }
+    }
+    
+    var renderingEngine: RenderingEngine = Factory.renderingEngine {
+        didSet { write(renderingEngine.rawValue, for: .renderingEngine) }
+    }
+    
+    init() {
+        defaults?.register(defaults: [
+            Key.numberOfNodes.rawValue: Factory.numberOfNodes,
+            Key.minSpeed.rawValue: Double(Factory.minSpeed),
+            Key.maxSpeed.rawValue: Double(Factory.maxSpeed),
+            Key.minRadius.rawValue: Double(Factory.minRadius),
+            Key.maxRadius.rawValue: Double(Factory.maxRadius),
+            Key.lineDistance.rawValue: Double(Factory.lineDistance),
+            Key.renderingEngine.rawValue: Factory.renderingEngine.rawValue
+        ])
+        load()
+    }
+    
+    // MARK: Reading
+    
+    /// Pulls the persisted values into the properties, without writing them straight back out again.
+    func load() {
+        guard let defaults = self.defaults else { return }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        numberOfNodes = defaults.integer(forKey: Key.numberOfNodes.rawValue)
+        minSpeed = CGFloat(defaults.double(forKey: Key.minSpeed.rawValue))
+        maxSpeed = CGFloat(defaults.double(forKey: Key.maxSpeed.rawValue))
+        minRadius = CGFloat(defaults.double(forKey: Key.minRadius.rawValue))
+        maxRadius = CGFloat(defaults.double(forKey: Key.maxRadius.rawValue))
+        lineDistance = CGFloat(defaults.double(forKey: Key.lineDistance.rawValue))
+        
+        backgroundColor = readColor(for: .backgroundColor) ?? Factory.backgroundColor
+        nodeColor = readColor(for: .nodeColor) ?? Factory.nodeColor
+        lineColor = readColor(for: .lineColor) ?? Factory.lineColor
+        
+        let engine = defaults.string(forKey: Key.renderingEngine.rawValue) ?? ""
+        renderingEngine = RenderingEngine(rawValue: engine) ?? Factory.renderingEngine
+    }
+    
+    /// Restores every setting to its factory value.
+    func reset() {
+        numberOfNodes = Factory.numberOfNodes
+        minSpeed = Factory.minSpeed
+        maxSpeed = Factory.maxSpeed
+        minRadius = Factory.minRadius
+        maxRadius = Factory.maxRadius
+        lineDistance = Factory.lineDistance
+        backgroundColor = Factory.backgroundColor
+        nodeColor = Factory.nodeColor
+        lineColor = Factory.lineColor
+        renderingEngine = Factory.renderingEngine
+    }
+    
+    private func readColor(for key: Key) -> NSColor? {
+        guard let data = defaults?.data(forKey: key.rawValue) else { return nil }
+        return try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: data)
+    }
+    
+    // MARK: Writing
+    
+    private func write(_ value: Any, for key: Key) {
+        guard !isLoading, let defaults = self.defaults else { return }
+        defaults.set(value, forKey: key.rawValue)
+        defaults.synchronize()
+    }
+    
+    private func writeColor(_ color: NSColor, for key: Key) {
+        // NSColor is not a property list type, so it has to be archived first.
+        guard let data = try? NSKeyedArchiver.archivedData(withRootObject: color,
+                                                           requiringSecureCoding: true) else { return }
+        write(data, for: key)
     }
 }

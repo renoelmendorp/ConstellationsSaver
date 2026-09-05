@@ -4,7 +4,9 @@
 //
 
 import ScreenSaver
+import AppKit
 
+@objc(ConstellationsView)
 class ConstellationsView: ScreenSaverView {
     
     // MARK: Properties
@@ -12,11 +14,74 @@ class ConstellationsView: ScreenSaverView {
     
     private var defaults = ConstellationsDefaults()
     
+    private var metalRenderer: ConstellationsMetalRenderer?
+    
+    /// True when the Metal engine is selected *and* it started up successfully.
+    private var isRenderingWithMetal: Bool { metalRenderer?.contentView.superview === self }
+    
+    private lazy var settingsController = ConstellationsSettingsController(defaults: defaults) { [weak self] in
+        self?.settingsDidChange()
+    }
+    
+    // MARK: Configure Sheet
+    override var hasConfigureSheet: Bool { true }
+
+    override var configureSheet: NSWindow? {
+        settingsController.prepareForDisplay()
+        return settingsController.window
+    }
+    
+    override var isOpaque: Bool { true }
+    
+    /// Applies a change made in the settings pane to the running animation.
+    private func settingsDidChange() {
+        if nodes.count != defaults.numberOfNodes {
+            nodes = initNodes(defaults.numberOfNodes)
+        }
+        updateRenderingEngine()
+        redraw()
+    }
+    
+    // MARK: Rendering Engine
+    
+    /// Adds or removes the Metal view to match the selected engine. If Metal cannot be set up on
+    /// this Mac the Core Graphics engine stays in place.
+    private func updateRenderingEngine() {
+        guard defaults.renderingEngine == .metal else {
+            metalRenderer?.contentView.removeFromSuperview()
+            return
+        }
+        
+        if metalRenderer == nil {
+            metalRenderer = ConstellationsMetalRenderer(defaults: defaults, frame: bounds)
+        }
+        guard let contentView = metalRenderer?.contentView, contentView.superview !== self else { return }
+        
+        contentView.frame = bounds
+        contentView.autoresizingMask = [.width, .height]
+        addSubview(contentView)
+    }
+    
+    private func redraw() {
+        if isRenderingWithMetal {
+            metalRenderer?.render(nodes: nodes)
+        } else {
+            setNeedsDisplay(bounds)
+        }
+    }
+    
     // MARK: Initialization
     override init?(frame: NSRect, isPreview: Bool) {
         super.init(frame: frame, isPreview: isPreview)
         
+        // Force the view to be backed by a CA Layer
+        wantsLayer = true
+        
+        // Ensure setNeedsDisplay correctly triggers the redraw
+        layerContentsRedrawPolicy = .onSetNeedsDisplay
+        
         nodes = initNodes(defaults.numberOfNodes)
+        updateRenderingEngine()
     }
     
     @available(*, unavailable)
@@ -26,7 +91,30 @@ class ConstellationsView: ScreenSaverView {
     
     // MARK: Lifecycle
     
+    override func startAnimation() {
+        super.startAnimation()
+        // Ensure a consistent frame rate when launched by ScreenSaverEngine
+        animationTimeInterval = 1.0 / 30.0
+        // (Re)initialize nodes once we have a valid size
+        if nodes.isEmpty || bounds.size != .zero {
+            nodes = initNodes(defaults.numberOfNodes)
+        }
+        updateRenderingEngine()
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        // Re-seed nodes when the saver view is resized by ScreenSaverEngine
+        if newSize != .zero {
+            nodes = initNodes(defaults.numberOfNodes)
+            redraw()
+        }
+    }
+    
     override func draw(_ rect: NSRect) {
+        // The Metal view covers the whole saver, so there is nothing to draw here for that engine.
+        guard !isRenderingWithMetal else { return }
+        
         // Draw a single frame in this function
         drawBackground(defaults.backgroundColor)
         drawLines()
@@ -60,8 +148,12 @@ class ConstellationsView: ScreenSaverView {
     }
     
     private func drawLines() {
-        for firstNode in nodes {
-            for secondNode in nodes {
+        guard nodes.count > 1 else { return }
+        for idx in 0..<(nodes.count - 1) {
+            for jdx in (idx + 1)..<nodes.count {
+                let firstNode = nodes[idx]
+                let secondNode = nodes[jdx]
+                
                 let minX = min(firstNode.position.x, secondNode.position.x)
                 let maxX = max(firstNode.position.x, secondNode.position.x)
                 let minY = min(firstNode.position.y, secondNode.position.y)
@@ -69,7 +161,7 @@ class ConstellationsView: ScreenSaverView {
                 
                 let xDist = maxX - minX
                 let yDist = maxY - minY
-                
+
                 let distance = sqrt(xDist*xDist + yDist*yDist)
                 if distance <= defaults.lineDistance {
                     let intensity = 1.0 - distance / defaults.lineDistance
@@ -98,7 +190,7 @@ class ConstellationsView: ScreenSaverView {
         }
         
         // Update the "state" of the screensaver in this function
-        setNeedsDisplay(bounds)
+        redraw()
     }
     
     // MARK: Helper Functions

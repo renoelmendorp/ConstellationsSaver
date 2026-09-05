@@ -11,12 +11,21 @@
 		A21069B629D83BBB0002788B /* ConstellationsDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21069B529D83BBB0002788B /* ConstellationsDefaults.swift */; };
 		A2F33AAA2F4214D5005D357C /* ConstellationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21069B329D83B8F0002788B /* ConstellationsView.swift */; };
 		A2F33AAC2F421501005D357C /* ConstellationsDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21069B529D83BBB0002788B /* ConstellationsDefaults.swift */; };
+		A2F33AB12F4216A0005D357C /* ConstellationsSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB02F4216A0005D357C /* ConstellationsSettingsController.swift */; };
+		A2F33AB22F4216A0005D357C /* ConstellationsSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB02F4216A0005D357C /* ConstellationsSettingsController.swift */; };
+		A2F33AB72F4216A0005D357C /* ConstellationsShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB62F4216A0005D357C /* ConstellationsShaders.metal */; };
+		A2F33AB82F4216A0005D357C /* ConstellationsShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB62F4216A0005D357C /* ConstellationsShaders.metal */; };
+		A2F33AB42F4216A0005D357C /* ConstellationsMetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB32F4216A0005D357C /* ConstellationsMetalRenderer.swift */; };
+		A2F33AB52F4216A0005D357C /* ConstellationsMetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F33AB32F4216A0005D357C /* ConstellationsMetalRenderer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A21069A729D83B740002788B /* Constellations.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Constellations.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 		A21069B329D83B8F0002788B /* ConstellationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstellationsView.swift; sourceTree = "<group>"; };
 		A21069B529D83BBB0002788B /* ConstellationsDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstellationsDefaults.swift; sourceTree = "<group>"; };
+		A2F33AB02F4216A0005D357C /* ConstellationsSettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstellationsSettingsController.swift; sourceTree = "<group>"; };
+		A2F33AB62F4216A0005D357C /* ConstellationsShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ConstellationsShaders.metal; sourceTree = "<group>"; };
+		A2F33AB32F4216A0005D357C /* ConstellationsMetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstellationsMetalRenderer.swift; sourceTree = "<group>"; };
 		A2F33A9F2F42142D005D357C /* Constellations Preview.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Constellations Preview.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -75,6 +84,9 @@
 			children = (
 				A21069B329D83B8F0002788B /* ConstellationsView.swift */,
 				A21069B529D83BBB0002788B /* ConstellationsDefaults.swift */,
+				A2F33AB02F4216A0005D357C /* ConstellationsSettingsController.swift */,
+				A2F33AB62F4216A0005D357C /* ConstellationsShaders.metal */,
+				A2F33AB32F4216A0005D357C /* ConstellationsMetalRenderer.swift */,
 			);
 			path = Constellations;
 			sourceTree = "<group>";
@@ -194,6 +206,9 @@
 			files = (
 				A21069B429D83B8F0002788B /* ConstellationsView.swift in Sources */,
 				A21069B629D83BBB0002788B /* ConstellationsDefaults.swift in Sources */,
+				A2F33AB12F4216A0005D357C /* ConstellationsSettingsController.swift in Sources */,
+				A2F33AB72F4216A0005D357C /* ConstellationsShaders.metal in Sources */,
+				A2F33AB42F4216A0005D357C /* ConstellationsMetalRenderer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,6 +217,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A2F33AAC2F421501005D357C /* ConstellationsDefaults.swift in Sources */,
+				A2F33AB22F4216A0005D357C /* ConstellationsSettingsController.swift in Sources */,
+				A2F33AB82F4216A0005D357C /* ConstellationsShaders.metal in Sources */,
+				A2F33AB52F4216A0005D357C /* ConstellationsMetalRenderer.swift in Sources */,
 				A2F33AAA2F4214D5005D357C /* ConstellationsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
