@@ -23,6 +23,10 @@ final class ConstellationsSettingsController: NSWindowController {
         case nodeColor
         case lineColor
         case renderingEngine
+        case framesPerSecond
+        
+        /// Whether the value reads as a whole number rather than one decimal place.
+        var isIntegral: Bool { self == .numberOfNodes || self == .framesPerSecond }
     }
     
     private let defaults: ConstellationsDefaults
@@ -76,6 +80,7 @@ final class ConstellationsSettingsController: NSWindowController {
         
         addHeader("Rendering", to: grid)
         addEngineRow(title: "Engine", to: grid)
+        addSliderRow(for: .framesPerSecond, title: "Frames per Second", range: 10...60, to: grid)
         
         addHeader("Nodes", to: grid)
         addSliderRow(for: .numberOfNodes, title: "Count", range: 10...500, to: grid)
@@ -298,6 +303,7 @@ final class ConstellationsSettingsController: NSWindowController {
     private func value(for setting: Setting) -> Double {
         switch setting {
         case .numberOfNodes: return Double(defaults.numberOfNodes)
+        case .framesPerSecond: return Double(defaults.framesPerSecond)
         case .minSpeed: return Double(defaults.minSpeed)
         case .maxSpeed: return Double(defaults.maxSpeed)
         case .minRadius: return Double(defaults.minRadius)
@@ -310,6 +316,7 @@ final class ConstellationsSettingsController: NSWindowController {
     private func setValue(_ value: Double, for setting: Setting) {
         switch setting {
         case .numberOfNodes: defaults.numberOfNodes = Int(value.rounded())
+        case .framesPerSecond: defaults.framesPerSecond = Int(value.rounded())
         case .minSpeed: defaults.minSpeed = CGFloat(value)
         case .maxSpeed: defaults.maxSpeed = CGFloat(value)
         case .minRadius: defaults.minRadius = CGFloat(value)
@@ -370,7 +377,7 @@ final class ConstellationsSettingsController: NSWindowController {
     private func updateValueLabel(for setting: Setting) {
         guard let label = valueLabels[setting] else { return }
         let value = self.value(for: setting)
-        label.stringValue = setting == .numberOfNodes
+        label.stringValue = setting.isIntegral
             ? String(Int(value.rounded()))
             : String(format: "%.1f", value)
     }

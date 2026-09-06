@@ -11,6 +11,8 @@ class ConstellationsView: ScreenSaverView {
     
     // MARK: Properties
     private var nodes: [Node] = []
+    /// The view size the current nodes were seeded for.
+    private var seededSize: NSSize = .zero
     
     private var defaults = ConstellationsDefaults()
     
@@ -39,7 +41,21 @@ class ConstellationsView: ScreenSaverView {
             nodes = initNodes(defaults.numberOfNodes)
         }
         updateRenderingEngine()
+        updateAnimationTimeInterval()
         redraw()
+    }
+    
+    /// The animation timer is scheduled by `startAnimation()`, so it has to be rebuilt for a new
+    /// interval to take effect.
+    private func updateAnimationTimeInterval() {
+        let interval = 1.0 / Double(defaults.framesPerSecond)
+        guard interval != animationTimeInterval else { return }
+        
+        animationTimeInterval = interval
+        if isAnimating {
+            stopAnimation()
+            startAnimation()
+        }
     }
     
     // MARK: Rendering Engine
@@ -94,9 +110,10 @@ class ConstellationsView: ScreenSaverView {
     override func startAnimation() {
         super.startAnimation()
         // Ensure a consistent frame rate when launched by ScreenSaverEngine
-        animationTimeInterval = 1.0 / 30.0
-        // (Re)initialize nodes once we have a valid size
-        if nodes.isEmpty || bounds.size != .zero {
+        animationTimeInterval = 1.0 / Double(defaults.framesPerSecond)
+        // (Re)initialize nodes once we have a valid size, but leave a field that already
+        // matches the current size and count alone: this also runs on every timer restart.
+        if nodes.isEmpty || seededSize != bounds.size || nodes.count != defaults.numberOfNodes {
             nodes = initNodes(defaults.numberOfNodes)
         }
         updateRenderingEngine()
@@ -195,6 +212,7 @@ class ConstellationsView: ScreenSaverView {
     
     // MARK: Helper Functions
     private func initNodes(_ numberOfNodes: Int) -> [Node] {
+        seededSize = bounds.size
         return (0..<numberOfNodes).map { _ in
                 .init(position: randomBorderPosition(),
                       vector: randomVector(),

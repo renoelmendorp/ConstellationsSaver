@@ -19,6 +19,7 @@ class ConstellationsDefaults {
         case nodeColor = "NodeColor"
         case lineColor = "LineColor"
         case renderingEngine = "RenderingEngine"
+        case framesPerSecond = "FramesPerSecond"
     }
     
     /// The drawing back end used by the saver view.
@@ -46,6 +47,7 @@ class ConstellationsDefaults {
         static let nodeColor: NSColor = .white
         static let lineColor: NSColor = .white
         static let renderingEngine: RenderingEngine = .metal
+        static let framesPerSecond: Int = 30
     }
     
     private var defaults = ScreenSaverDefaults(forModuleWithName: "nl.relmendorp.Constellations")
@@ -85,6 +87,9 @@ class ConstellationsDefaults {
     var renderingEngine: RenderingEngine = Factory.renderingEngine {
         didSet { write(renderingEngine.rawValue, for: .renderingEngine) }
     }
+    var framesPerSecond: Int = Factory.framesPerSecond {
+        didSet { write(framesPerSecond, for: .framesPerSecond) }
+    }
     
     init() {
         defaults?.register(defaults: [
@@ -94,7 +99,8 @@ class ConstellationsDefaults {
             Key.minRadius.rawValue: Double(Factory.minRadius),
             Key.maxRadius.rawValue: Double(Factory.maxRadius),
             Key.lineDistance.rawValue: Double(Factory.lineDistance),
-            Key.renderingEngine.rawValue: Factory.renderingEngine.rawValue
+            Key.renderingEngine.rawValue: Factory.renderingEngine.rawValue,
+            Key.framesPerSecond.rawValue: Factory.framesPerSecond
         ])
         load()
     }
@@ -121,6 +127,7 @@ class ConstellationsDefaults {
         
         let engine = defaults.string(forKey: Key.renderingEngine.rawValue) ?? ""
         renderingEngine = RenderingEngine(rawValue: engine) ?? Factory.renderingEngine
+        framesPerSecond = defaults.integer(forKey: Key.framesPerSecond.rawValue)
     }
     
     /// Restores every setting to its factory value.
@@ -135,6 +142,7 @@ class ConstellationsDefaults {
         nodeColor = Factory.nodeColor
         lineColor = Factory.lineColor
         renderingEngine = Factory.renderingEngine
+        framesPerSecond = Factory.framesPerSecond
     }
     
     private func readColor(for key: Key) -> NSColor? {
