@@ -8,11 +8,23 @@ and it draws through Metal by default so it stays cheap to run.
 
 ## Installing
 
-Build the **Constellations** scheme in Xcode, then double-click the resulting `Constellations.saver`
-in `~/Library/Developer/Xcode/DerivedData/…/Build/Products/Debug/` and confirm the install prompt.
-It will then show up under System Settings → Screen Saver → Other.
+Download `Constellations.saver.zip` from the [latest release][latest] and unzip it.
 
-To install by hand instead, copy the bundle to `~/Library/Screen Savers/`.
+The build is ad-hoc signed rather than notarized — there is no paid Apple Developer account behind
+this project — so macOS quarantines it on download and will refuse to load it. Clear that flag
+before installing:
+
+```bash
+xattr -dr com.apple.quarantine ~/Downloads/Constellations.saver
+```
+
+Then double-click the bundle and confirm the prompt. It shows up under System Settings →
+Screen Saver → Other. To install by hand instead, copy it to `~/Library/Screen Savers/`.
+
+If you would rather not run something unnotarized off the internet — a fair position — build it
+yourself instead; see [Building](#building). It is the same bundle either way.
+
+[latest]: https://github.com/renoelmendorp/ConstellationsSaver/releases/latest
 
 ## Settings
 
@@ -80,6 +92,14 @@ xcodebuild -downloadComponent MetalToolchain
 ```
 
 Without it the build fails with `cannot execute tool 'metal'`.
+
+For a release build, `Scripts/release.sh` produces the same universal, ad-hoc signed
+`Constellations.saver.zip` that the [Release workflow](.github/workflows/release.yml) attaches to
+tagged releases:
+
+```bash
+./Scripts/release.sh
+```
 
 ### Preview app
 

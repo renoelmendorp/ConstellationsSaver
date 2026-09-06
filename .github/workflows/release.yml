@@ -1,0 +1,53 @@
+name: Release
+
+# Push a tag to cut a release:
+#
+#     git tag v1.0.0 && git push origin v1.0.0
+#
+# Or run the workflow by hand to get the zip as a build artifact without publishing anything.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Metal toolchain
+        # Since Xcode 26 the Metal compiler is a separate ~700 MB component, and whether the
+        # runner image has it varies. Skip the download when it is already there.
+        run: |
+          if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "Already installed."
+          else
+            xcodebuild -downloadComponent MetalToolchain
+          fi
+
+      - name: Build and package
+        # Only the saver: the preview app targets a much newer macOS and is not shipped.
+        run: Scripts/release.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Constellations.saver
+          path: Constellations.saver.zip
+          if-no-files-found: error
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" Constellations.saver.zip \
+            --title "$GITHUB_REF_NAME" --generate-notes \
+          || gh release upload "$GITHUB_REF_NAME" Constellations.saver.zip --clobber
