@@ -1,8 +1,6 @@
 # Constellations
 
-A macOS screen saver. Points of light drift across the screen, drawing a line to every neighbour
-that comes close enough — the closer the pair, the brighter the line. Everything is configurable,
-and it draws through Metal by default so it stays cheap to run.
+MacOS screen saver. Points of light drift across the screen, creating dynamic constellations.
 
 ![Constellations running at its default settings](.github/screenshot.png)
 
