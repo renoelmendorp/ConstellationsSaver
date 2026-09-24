@@ -8,8 +8,7 @@ MacOS screen saver. Points of light drift across the screen, creating dynamic co
 
 Download `Constellations.saver.zip` from the [latest release][latest] and unzip it.
 
-The build is ad-hoc signed rather than notarized — there is no paid Apple Developer account behind
-this project — so macOS quarantines it on download and will refuse to load it. Clear that flag
+The build is ad-hoc signed rather than notarized, so macOS quarantines it on download and will refuse to load it. Clear that flag
 before installing:
 
 ```bash
@@ -19,8 +18,8 @@ xattr -dr com.apple.quarantine ~/Downloads/Constellations.saver
 Then double-click the bundle and confirm the prompt. It shows up under System Settings →
 Screen Saver → Other. To install by hand instead, copy it to `~/Library/Screen Savers/`.
 
-If you would rather not run something unnotarized off the internet — a fair position — build it
-yourself instead; see [Building](#building). It is the same bundle either way.
+If you would rather not run something unnotarized off the internet, build it
+yourself instead; see [Building](#building).
 
 [latest]: https://github.com/renoelmendorp/ConstellationsSaver/releases/latest
 
@@ -56,11 +55,10 @@ popping into view at the edge.
 
 ## Rendering engines
 
-**Metal** (default) draws the frame in two instanced draw calls — one quad per line and one per
-node, expanded on the GPU, with the discs and line edges antialiased analytically in the fragment
-shaders. **Core Graphics** is the original renderer: a `NSBezierPath` per line, stroked on the CPU.
+**Metal** (default) draws the frame in two draw calls on GPU
+**Core Graphics** is the original CPU renderer.
 
-Both produce the same picture. The difference is what it costs. Per-frame CPU time at 1920×1080 on
+Both produce the same picture. Per-frame CPU time at 1920×1080 on
 an Apple M1 Pro:
 
 | Nodes | Core Graphics | Metal | |
@@ -69,12 +67,7 @@ an Apple M1 Pro:
 | 300 | 7.35 ms | 0.82 ms | 9.0× |
 | 500 (maximum) | 20.93 ms | 1.26 ms | 16.7× |
 
-Core Graphics scales quadratically because every line is an allocation and a stroke. Metal stays
-roughly flat: the per-frame work that remains is the pair test that decides which nodes to join,
-which is around 0.2 ms even at the maximum node count.
-
-The Core Graphics engine is kept because it needs no GPU at all, and because it is a useful
-reference when changing how the saver looks. If Metal cannot be set up on a given Mac, the saver
+The Core Graphics engine is kept because it needs no GPU at all. If Metal cannot be set up on a given Mac, the saver
 falls back to Core Graphics on its own and the Metal option is disabled in the settings pane.
 
 Frames per Second is the setting to reach for if you care about power: it scales both CPU and GPU
@@ -104,17 +97,5 @@ tagged releases:
 The **Constellations Preview** scheme runs the saver in an ordinary resizable window with a
 **Settings…** button in the title bar. It is much faster to iterate against than reinstalling the
 `.saver` and locking the screen. It targets a newer macOS than the saver bundle does.
-
-## Project layout
-
-| File | |
-| --- | --- |
-| `ConstellationsView.swift` | The `ScreenSaverView` subclass: node simulation, the Core Graphics renderer, and engine switching |
-| `ConstellationsMetalRenderer.swift` | The Metal renderer and its `MTKView` |
-| `ConstellationsShaders.metal` | Vertex and fragment shaders for the line and node passes |
-| `ConstellationsSettingsController.swift` | The configure sheet |
-| `ConstellationsDefaults.swift` | Every setting, persisted through `ScreenSaverDefaults` |
-
-## License
 
 MIT — see [LICENSE](LICENSE).
